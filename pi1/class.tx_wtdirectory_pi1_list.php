@@ -87,8 +87,8 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 			$find_in_set = "'" . $this->pi_getFFvalue($this->conf, 'addresspool', 'mainconfig') . "'";
 
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
-					$this->query['select'] = 'tt_address.*, tt_address.uid ttaddress_uid, tt_address_group.title tt_address_group_title, tt_address_group.uid tt_address_group_uid, tt_address_group.pid tt_address_group_pid',
-					$this->query['from'] = 'tt_address LEFT JOIN tt_address_group_mm on (tt_address.uid = tt_address_group_mm.uid_local) LEFT JOIN tt_address_group on (tt_address_group_mm.uid_foreign = tt_address_group.uid)',
+					$this->query['select'] = 'tt_address.*, tt_address.uid ttaddress_uid, sys_category.title tt_address_group_title, sys_category.uid tt_address_group_uid, sys_category.pid tt_address_group_pid',
+					$this->query['from'] = 'tt_address LEFT JOIN sys_category_record_mm on (tt_address.uid = sys_category_record_mm.uid_local) LEFT JOIN sys_category on (sys_category_record_mm.uid_foreign = sys_category.uid)',
 					$this->query['where'] = $this->filter . $this->query_pid . $this->query_cat . $this->cObj->enableFields('tt_address'),
 					$this->query['groupby'],
 					$this->query['orderby'] = (empty($this->conf['list.']['orderby'])) ? 'FIND_IN_SET(tt_address.uid,' . $find_in_set . ')' : addslashes($this->conf['list.']['orderby']),
@@ -108,7 +108,7 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 					if ($currentAddressGroup <> $row['tt_address_group_title']) {
 						// store the new group 
 						$currentAddressGroup = $row['tt_address_group_title'];
-						$this->InnerMarkerArray['###WTDIRECTORY_TT_ADDRESS_GROUP_TITLE###'] = $this->cObj->stdWrap($row['tt_address_group_title'], $this->conf['list.']['tt_address_group_title.']);
+						$this->InnerMarkerArray['###WTDIRECTORY_TT_ADDRESS_GROUP_TITLE###'] = $this->cObj->stdWrap($row['tt_address_group_title'], $this->conf['list.']['sys_category_title.']);
 						$row['tt_address_group_title'] = $this->InnerMarkerArray['###WTDIRECTORY_TT_ADDRESS_GROUP_TITLE###'];
 					} else {
 						// return nothing, because it is still the same group
@@ -206,7 +206,7 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 		}
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
 				$this->query['select'] = '*',
-				$this->query['from'] = 'tt_address LEFT JOIN tt_address_group_mm on (tt_address.uid = tt_address_group_mm.uid_local) LEFT JOIN tt_address_group on (tt_address_group_mm.uid_foreign = tt_address_group.uid)',
+				$this->query['from'] = 'tt_address LEFT JOIN sys_category_record_mm on (tt_address.uid = sys_category_record_mm.uid_local) LEFT JOIN sys_category on (sys_category_record_mm.uid_foreign = sys_category.uid)',
 				$this->query['where'] = $this->filter . $this->query_pid . $this->query_cat . $this->cObj->enableFields('tt_address'),
 				$this->query['groupby'],
 				$this->query['orderby'] = '',
@@ -227,7 +227,7 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 	private function setFilter() {
 		// config
 		$this->query_pid = ($this->cObj->data['pages'] > 0 ? ' AND tt_address.pid IN (' . $this->pi_getPidList($this->cObj->data['pages'], $this->cObj->data['recursive']) . ')' : ''); // where clause with pid
-		$this->query_cat = ($this->pi_getFFvalue($this->conf, 'cat_join', 'mainconfig') > 0 && $this->pi_getFFvalue($this->conf, 'category', 'mainconfig') != '' ? ' AND tt_address_group.uid IN(' . $this->pi_getFFvalue($this->conf, 'category', 'mainconfig') . ')' : ''); // where clause for tt_address_group
+		$this->query_cat = ($this->pi_getFFvalue($this->conf, 'cat_join', 'mainconfig') > 0 && $this->pi_getFFvalue($this->conf, 'category', 'mainconfig') != '' ? ' AND sys_category.uid IN(' . $this->pi_getFFvalue($this->conf, 'category', 'mainconfig') . ')' : ''); // where clause for sys_category
 		if ($this->pi_getFFvalue($this->conf, 'addresspool', 'mainconfig') != '') { // just use an addresspool
 			$this->query_cat = ''; // clean category filter
 			$this->query_pid = ' AND tt_address.uid IN (' . $this->pi_getFFvalue($this->conf, 'addresspool', 'mainconfig') . ')'; // addresspool filter
@@ -286,7 +286,7 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 								$set = 1; // min 1 filter was set
 							}
 						} else { // search filter for addressgroup title
-							$this->filter .= 'tt_address_group.title LIKE "%' . $value . '%" AND '; // add this filter to query
+							$this->filter .= 'sys_category.title LIKE "%' . $value . '%" AND '; // add this filter to query
 							$set = 1; // min 1 filter was set
 						}
 					}
@@ -311,12 +311,12 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 		if (!empty($this->piVars['catfilter'])) {
 			if (is_array($this->piVars['catfilter'])) {
 				foreach ($this->piVars['catfilter'] as $catID) {
-					$this->filter .= ' AND tt_address.uid IN (SELECT tt_address.uid FROM tt_address INNER JOIN tt_address_group_mm ON tt_address.uid = tt_address_group_mm.uid_local WHERE tt_address_group_mm.uid_foreign= ' . $catID . ')';
+					$this->filter .= ' AND tt_address.uid IN (SELECT tt_address.uid FROM tt_address INNER JOIN sys_category_record_mm ON tt_address.uid = sys_category_record_mm.uid_local WHERE sys_category_record_mm.uid_foreign= ' . $catID . ')';
 				}
 			} else {
 				// no array, so query with an and statement
-				$this->filter .= ' AND tt_address_group.uid = ' . $this->piVars['catfilter']; // if catfilter set, add where clause
-				$this->filter .= ' AND tt_address.uid IN (SELECT tt_address.uid FROM tt_address INNER JOIN tt_address_group_mm ON tt_address.uid = tt_address_group_mm.uid_local WHERE tt_address_group_mm.uid_foreign= ' . $this->piVars['catfilter'] . ')';
+				$this->filter .= ' AND sys_category.uid = ' . $this->piVars['catfilter']; // if catfilter set, add where clause
+				$this->filter .= ' AND tt_address.uid IN (SELECT tt_address.uid FROM tt_address INNER JOIN sys_category_record_mm ON tt_address.uid = sys_category_record_mm.uid_local WHERE sys_category_record_mm.uid_foreign= ' . $this->piVars['catfilter'] . ')';
 			}
 		}
 
@@ -338,7 +338,7 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 		if (!empty($this->piVars['catfilterOR'])) {
 			if (is_array($this->piVars['catfilterOR'])) {
 				$cats = implode(',', $this->piVars['catfilterOR']);
-				$this->filter .= ' AND tt_address_group_mm.uid_foreign IN (' . $cats . ')';
+				$this->filter .= ' AND sys_category_record_mm.uid_foreign IN (' . $cats . ')';
 			}
 		}
 

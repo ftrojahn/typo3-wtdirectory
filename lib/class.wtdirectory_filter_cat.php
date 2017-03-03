@@ -48,7 +48,6 @@ class tx_wtdirectory_filter_cat extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 		$this->piVars = $piVars;
 		$this->pi_loadLL();
 		$this->outerArray = $this->markerArray = $this->subpartArray = array();
-		$content_item = ''; // init
 		$this->div = GeneralUtility::makeInstance('wtdirectory_div'); // Create new instance for div class
 		$this->notAllowedCategories = GeneralUtility::trimExplode(',', $this->conf['filter.']['cat.']['disable'], 1); // some categories which are not allowed (via constants)
 		$this->dynamicMarkers = GeneralUtility::makeInstance('tx_wtdirectory_dynamicmarkers'); // New object: TYPO3 dynamicmarker function
@@ -133,6 +132,7 @@ class tx_wtdirectory_filter_cat extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 		$this->outerArray['###WTDIRECTORY_CAT_ACTION###'] = $this->conf['filter.']['cat.']['clearOldFilter'] == 0 ? htmlentities($this->pi_linkTP_keepPIvars_url(array('hash' => 1), 1)) : htmlentities($this->cObj->typolink('x', array('returnLast' => 'url', 'additionalParams' => '&' . $this->prefixId . '[hash]=1', 'parameter' => $GLOBALS['TSFE']->id, 'useCacheHash' => 1))); // target for form
 		$this->outerArray['###WTDIRECTORY_CAT_METHOD###'] = 'post'; // form method
 
+        $content_item = '';
 		for ($i = 0; $i < count($this->cat); $i++) { // one loop for every chosen category
 			if (
 					(isset($this->notAllowedCategories) && !in_array($this->cat[$i], $this->notAllowedCategories))
@@ -140,8 +140,8 @@ class tx_wtdirectory_filter_cat extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 			) {
 				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
 						'title, pid, uid',
-						'tt_address_group',
-						$where_clause = 'tt_address_group.uid = ' . $this->cat[$i] . $this->cObj->enableFields('tt_address_group'),
+						'sys_category',
+						$where_clause = 'sys_category.uid = ' . $this->cat[$i] . $this->cObj->enableFields('sys_category'),
 						$groupBy = '',
 						$orderBy = '',
 						$limit = 1
@@ -152,7 +152,7 @@ class tx_wtdirectory_filter_cat extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 
 				// Fill inner marker
 				$this->markerArray['###WTDIRECTORY_CAT_TITLE###'] = $row['title']; // Title marker
-				$tmp_addressgroup = $GLOBALS['TSFE']->sys_page->getRecordOverlay('tt_address_group', array('pid' => $row['pid'], 'uid' => $row['uid'], 'title' => $row['title']), $this->languid, ($this->sys_language_mode == 'strict' ? 'hideNonTranslated' : '')); // language overlay
+				$tmp_addressgroup = $GLOBALS['TSFE']->sys_page->getRecordOverlay('sys_category', array('pid' => $row['pid'], 'uid' => $row['uid'], 'title' => $row['title']), $this->languid, ($this->sys_language_mode == 'strict' ? 'hideNonTranslated' : '')); // language overlay
 				if ($tmp_addressgroup['title']) { // overwrite addressgroup title with localized version
 					$this->markerArray['###WTDIRECTORY_CAT_TITLE###'] = $tmp_addressgroup['title'];
 				}

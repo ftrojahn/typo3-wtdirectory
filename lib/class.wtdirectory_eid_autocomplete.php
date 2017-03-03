@@ -52,8 +52,8 @@ class tx_wtdirectory_autocomplete extends \TYPO3\CMS\Frontend\Plugin\AbstractPlu
 				'DISTINCT tt_address.' . $this->field,
 				'
 					tt_address
-					LEFT JOIN tt_address_group_mm on (tt_address.uid = tt_address_group_mm.uid_local)
-					LEFT JOIN tt_address_group on (tt_address_group_mm.uid_foreign = tt_address_group.uid)
+					LEFT JOIN sys_category_record_mm on (tt_address.uid = sys_category_record_mm.uid_local)
+					LEFT JOIN sys_category on (sys_category_record_mm.uid_foreign = sys_category.uid)
 				',
 				$this->whereClause() . ' AND tt_address.deleted = 0 AND tt_address.hidden = 0',
 				$this->query['groupby'] = 'tt_address.uid, tt_address.' . $this->field,
@@ -88,7 +88,7 @@ class tx_wtdirectory_autocomplete extends \TYPO3\CMS\Frontend\Plugin\AbstractPlu
 			$where .= ' AND tt_address.pid IN(' . $this->pid . ')';
 		}
 		if (!empty($this->cat)) {
-			$where .= ' AND tt_address_group.uid IN(' . $this->cat . ')';
+			$where .= ' AND sys_category.uid IN(' . $this->cat . ')';
 		}
 		if (!empty($this->search)) {
 			$where .= ' AND tt_address.' . $this->field . ' LIKE "%' . $this->search . '%"';

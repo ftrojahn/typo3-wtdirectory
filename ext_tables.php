@@ -60,6 +60,5 @@ if (TYPO3_MODE == 'BE') {
 	include_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('wt_directory') . 'be/class.user_be_abcfields.php'); // show all fields in database table tt_address
 	include_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('wt_directory') . 'be/class.user_be_googlemapmsg.php'); // check if googlemap is installed
 	include_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('wt_directory') . 'be/class.user_be_powermailmsg.php'); // check if powermail is installed
-	include_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('tt_address') . 'class.tx_ttaddress_treeview.php'); // check tt_address categories from tt_address
 }
 ?>
