@@ -70,7 +70,7 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		);
 
 		// query
-		$res = mysql_query('SHOW COLUMNS FROM tt_address'); // mysql query
+        $res = $GLOBALS['TYPO3_DB']->sql_query( 'SHOW COLUMNS FROM tt_address' );
 		if ($res) { // If there is a result
 			while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) { // One loop for every result
 				if ($row['Field'] && !in_array($row['Field'], $notAllowedFields)) {

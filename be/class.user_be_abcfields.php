@@ -27,7 +27,7 @@ class user_be_abcfields {
 
 	function main(&$params, &$pObj) {
 
-		$res = mysql_query('SHOW COLUMNS FROM tt_address'); // mysql query
+        $res = $GLOBALS['TYPO3_DB']->sql_query( 'SHOW COLUMNS FROM tt_address' );
 		if ($res) { // If there is a result
 			$i = 1;
 			// First option is empty
