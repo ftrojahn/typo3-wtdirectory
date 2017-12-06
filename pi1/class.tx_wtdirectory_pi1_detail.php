@@ -52,8 +52,8 @@ class tx_wtdirectory_pi1_detail extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 		if ($this->piVars['show'] > 0) { // if show param is set
 			if ($this->div->allowedDetailUID($this->piVars['show'], $this)) { // if given uid is allowed to show
 				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
-						'tt_address.*, sys_category.title tt_address_group_title, sys_category.uid tt_address_group_uid, sys_category.pid tt_address_group_pid',
-						'tt_address LEFT JOIN sys_category_record_mm on (tt_address.uid = sys_category_record_mm.uid_local) LEFT JOIN sys_category on (sys_category_record_mm.uid_foreign = sys_category.uid)',
+						'tt_address.*, tt_address_group.title tt_address_group_title, tt_address_group.uid tt_address_group_uid, tt_address_group.pid tt_address_group_pid',
+						'tt_address LEFT JOIN tt_address_group_mm on (tt_address.uid = tt_address_group_mm.uid_local) LEFT JOIN tt_address_group on (tt_address_group_mm.uid_foreign = tt_address_group.uid)',
 						$where_clause = 'tt_address.uid = ' . $this->piVars['show'] . $this->cObj->enableFields('tt_address'),
 						$groupBy = 'tt_address.uid',
 						$orderBy = '',

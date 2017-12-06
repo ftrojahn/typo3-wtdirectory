@@ -157,6 +157,7 @@ class tx_wtdirectory_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		$rootCat = $this->conf['drillDown.']['root'];
 		$rootCats = $this->getChildCategories($rootCat);
 
+		$catArray = array();
 		$catArray = $this->drillDown_getCategories($rootCats, $selected);
 
 		if ($this->conf['drillDown.']['continent.']['selectorBox.']['displayAnEmptyOption.']['localLangLabel']) {
@@ -167,7 +168,7 @@ class tx_wtdirectory_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
 		if ($this->conf['drillDown.']['continent.']['selectorBox.']['css.']['class']) $CSSClass = ' class="' . $this->conf['drillDown.']['continent.']['selectorBox.']['css.']['class'] . '" ';
 
-		if ($this->conf['drillDown.']['continent.']['selectorBox.']['css.']['id']) $CSSID = ' id="' . $this->conf['drillDown.']['continent.']['selectorBox.']['css.']['id'] . '"';
+		if ($this->conf['drillDown.']['continent.']['selectorBox.']['css.']['id']) $CSSID = ' id="' . $this->conf['drillDown.']['continent.']['selectorBox.']['css.']['id'] . $key . '"';
 		if ($this->conf['drillDown.']['continent.']['selectorBox.']['displayAnEmptyOption'] == 1) $displayAnEmptyOption = true;
 		$box = $this->renderSelector($catArray, $selected, $this->prefixId . '[continent]', 0, $displayAnEmptyOption, false, ' onchange="doSubmit()" ' . $CSSClass . ' ' . $CSSID, $this->conf['drillDown.']['continent.']['selectorBox.']['option.'], $noSelectionLabel);
 		$markerArray['###SELECTOR_CONTINENTS###'] = $this->cObj->stdWrap($box, $this->conf['drillDown.']['continent.']['selectorBox.']);
@@ -185,7 +186,7 @@ class tx_wtdirectory_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
 			if ($this->conf['drillDown.']['country.']['selectorBox.']['css.']['class']) $CSSClass = ' class="' . $this->conf['drillDown.']['country.']['selectorBox.']['css.']['class'] . '" ';
 
-			if ($this->conf['drillDown.']['country.']['selectorBox.']['css.']['id']) $CSSID = ' id="' . $this->conf['drillDown.']['country.']['selectorBox.']['css.']['id'] . '"';
+			if ($this->conf['drillDown.']['country.']['selectorBox.']['css.']['id']) $CSSID = ' id="' . $this->conf['drillDown.']['country.']['selectorBox.']['css.']['id'] . $key . '"';
 			if ($this->conf['drillDown.']['country.']['selectorBox.']['displayAnEmptyOption'] == 1) $displayAnEmptyOption = true;
 			// List of countries which do have
 			$additionalCatIDs = array();
@@ -218,7 +219,6 @@ class tx_wtdirectory_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	 */
 	function drillDown_getCategories($cats, $selected) {
 
-	    $returnCats = array();
 		foreach ($cats as $catID) {
 			$returnCats[$catID] = $this->getCategoryTitleLocalized($catID);
 		}
@@ -292,7 +292,6 @@ class tx_wtdirectory_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 	 */
 	function renderSelector($options, $selected, $name, $size = 1, $no_selecetion = true, $multiple = false, $additionalParams = '', $stdWrapConf = array(), $noSelectionLabel = '') {
 		$is_selected = false;
-		$content = '';
 		foreach ($options as $key => $option) {
 			$sel = '';
 			$label = $this->pi_getLL($option);
@@ -326,7 +325,7 @@ class tx_wtdirectory_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
 	function getCategoryTitleLocalized($catID) {
 
-		$row = $this->pi_getRecord('sys_category', $catID);
+		$row = $this->pi_getRecord('tt_address_group', $catID);
 		$conf['sys_language_uid'] = $GLOBALS['TSFE']->sys_language_uid;
 
 		$rowLocalized = $this->getRecordOverlay('tx_dam_cat', $row, $conf);
@@ -435,21 +434,22 @@ class tx_wtdirectory_pi2 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 			$childs = array();
 			if ($additionalCatIDs) {
 				// get all tt_address uids which are belonging to the restricting category
-				$SELECT = 'SELECT DISTINCT sys_category.uid ';
-				$FROM = 'FROM sys_category, sys_category_record_mm ';
-				$WHERE = 'WHERE parent = ' . $catID . ' AND sys_category_record_mm.uid_foreign = sys_category.uid ';
+				$additionalWhere = '';
+				$SELECT = 'SELECT DISTINCT tt_address_group.uid ';
+				$FROM = 'FROM tt_address_group, tt_address_group_mm ';
+				$WHERE = 'WHERE parent_group = ' . $catID . ' AND tt_address_group_mm.uid_foreign = tt_address_group.uid ';
 				foreach ($additionalCatIDs as $additionalCatID) {
-					$WHERE .= 'AND sys_category_record_mm.uid_local IN (
+					$WHERE .= 'AND tt_address_group_mm.uid_local IN (
 								SELECT tt_address.uid
 								FROM tt_address
-								INNER JOIN sys_category_record_mm ON tt_address.uid = sys_category_record_mm.uid_local
-								INNER JOIN sys_category ON sys_category_record_mm.uid_foreign = sys_category.uid
- 								WHERE sys_category_record_mm.uid_foreign = ' . $additionalCatID . ')';
+								INNER JOIN tt_address_group_mm ON tt_address.uid = tt_address_group_mm.uid_local
+								INNER JOIN tt_address_group ON tt_address_group_mm.uid_foreign = tt_address_group.uid
+ 								WHERE tt_address_group_mm.uid_foreign = ' . $additionalCatID . ')';
 				}
 				#GeneralUtility::debug($SELECT . $FROM . $WHERE);
 				$res = $GLOBALS['TYPO3_DB']->sql_query($SELECT . $FROM . $WHERE);
 			} else {
-				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'sys_category', 'parent=' . $catID);
+				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'tt_address_group', 'parent_group=' . $catID . $additionalWhere);
 			}
 			while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 				$childs[] = $row['uid'];

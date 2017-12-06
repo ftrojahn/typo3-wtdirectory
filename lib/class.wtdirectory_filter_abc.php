@@ -53,11 +53,11 @@ class tx_wtdirectory_filter_abc extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 			if (!empty($this->piVars['catfilter'])) { // if catfilter is set
 				if (is_array($this->piVars['catfilter'])) {
 					foreach ($this->piVars['catfilter'] as $catID) {
-						$this->filter .= ' AND tt_address.uid IN (SELECT tt_address.uid FROM tt_address INNER JOIN sys_category_record_mm ON tt_address.uid = sys_category_record_mm.uid_local WHERE sys_category_record_mm.uid_foreign= ' . $catID . ')';
+						$this->filter .= ' AND tt_address.uid IN (SELECT tt_address.uid FROM tt_address INNER JOIN tt_address_group_mm ON tt_address.uid = tt_address_group_mm.uid_local WHERE tt_address_group_mm.uid_foreign= ' . $catID . ')';
 					}
 				} else {
 					// no array, so query with an and statement
-					$this->filter .= ' AND sys_category.uid = ' . $this->piVars['catfilter']; // if catfilter set, add where clause
+					$this->filter .= ' AND tt_address_group.uid = ' . $this->piVars['catfilter']; // if catfilter set, add where clause
 				}
 			}
 
@@ -82,7 +82,7 @@ class tx_wtdirectory_filter_abc extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
 					'tt_address.uid uid',
-					'tt_address LEFT JOIN sys_category_record_mm on (tt_address.uid = sys_category_record_mm.uid_local) LEFT JOIN sys_category on (sys_category_record_mm.uid_foreign = sys_category.uid)',
+					'tt_address LEFT JOIN tt_address_group_mm on (tt_address.uid = tt_address_group_mm.uid_local) LEFT JOIN tt_address_group on (tt_address_group_mm.uid_foreign = tt_address_group.uid)',
 					$where_clause = 'tt_address.' . $this->pi_getFFvalue($this->conf, 'abc', 'list') . ' LIKE "' . $a . '%"' . $this->query_pid . $this->query_cat . $this->filter . $this->cObj->enableFields('tt_address'),
 					$groupBy = 'tt_address.uid',
 					$orderBy = '',
@@ -122,7 +122,7 @@ class tx_wtdirectory_filter_abc extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
 				'tt_address.uid uid',
-				'tt_address LEFT JOIN sys_category_record_mm on (tt_address.uid = sys_category_record_mm.uid_local) LEFT JOIN sys_category on (sys_category_record_mm.uid_foreign = sys_category.uid)',
+				'tt_address LEFT JOIN tt_address_group_mm on (tt_address.uid = tt_address_group_mm.uid_local) LEFT JOIN tt_address_group on (tt_address_group_mm.uid_foreign = tt_address_group.uid)',
 				#$where_clause = 'tt_address.' . $this->pi_getFFvalue($this->conf, 'abc', 'list') . ' < "@%"' . $this->query_pid . $this->query_cat . $this->filter . $this->cObj->enableFields('tt_address'),
 				$where_clause = 'tt_address.' . $this->pi_getFFvalue($this->conf, 'abc', 'list') . ' RLIKE "^[0-9]."' . $this->query_pid . $this->query_cat . $this->filter . $this->cObj->enableFields('tt_address'),
 				$groupBy = 'tt_address.uid',

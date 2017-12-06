@@ -211,15 +211,15 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		// let's go
 		if ($uid > 0) { // if uid exists
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-					$query['select'] = 'sys_category.title, sys_category.pid, sys_category.uid',
-					$query['from'] = 'sys_category LEFT JOIN sys_category_record_mm on (sys_category_record_mm.uid_foreign = sys_category.uid)',
-					$query['where'] = 'sys_category_record_mm.uid_local =' . intval($uid) . ' AND sys_category.uid = sys_category_record_mm.uid_foreign',
-					$query['orderby'] = 'sys_category.title'
+					$query['select'] = 'tt_address_group.title, tt_address_group.pid, tt_address_group.uid',
+					$query['from'] = 'tt_address_group LEFT JOIN tt_address_group_mm on (tt_address_group_mm.uid_foreign = tt_address_group.uid)',
+					$query['where'] = 'tt_address_group_mm.uid_local =' . intval($uid) . ' AND tt_address_group.uid = tt_address_group_mm.uid_foreign',
+					$query['orderby'] = 'tt_address_group.title'
 			);
 			if ($res) { // if there are results
 				while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) { // one loop for every addressgroup
 					if ($row['title']) { // if title available
-						$tmp_addressgroup = $GLOBALS['TSFE']->sys_page->getRecordOverlay('sys_category', array('pid' => $row['pid'], 'uid' => $row['uid'], 'title' => $row['title']), $this->languid, ($this->sys_language_mode == 'strict' ? 'hideNonTranslated' : '')); // language overlay
+						$tmp_addressgroup = $GLOBALS['TSFE']->sys_page->getRecordOverlay('tt_address_group', array('pid' => $row['pid'], 'uid' => $row['uid'], 'title' => $row['title']), $this->languid, ($this->sys_language_mode == 'strict' ? 'hideNonTranslated' : '')); // language overlay
 						$row['title'] = $tmp_addressgroup['title']; // overwrite addressgroup title with localized version
 					}
 
@@ -360,8 +360,8 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		if ($this->pi_getFFvalue($this->conf, 'cat_join', 'mainconfig') == 1) { // if catmode == 1 (show only selected categories)
 
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
-					'sys_category.uid',
-					'tt_address LEFT JOIN sys_category_record_mm on (tt_address.uid = sys_category_record_mm.uid_local) LEFT JOIN sys_category on (sys_category_record_mm.uid_foreign = sys_category.uid)',
+					'tt_address_group.uid',
+					'tt_address LEFT JOIN tt_address_group_mm on (tt_address.uid = tt_address_group_mm.uid_local) LEFT JOIN tt_address_group on (tt_address_group_mm.uid_foreign = tt_address_group.uid)',
 					'tt_address.uid = ' . intval($uid) . $this->cObj->enableFields('tt_address'),
 					'',
 					'',
@@ -403,14 +403,14 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 
 		if ($this->conf['filter.']['cat.']['showAllInDropdown']) { // if showAllInDropdown was set via constants
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery( // DB query
-					'sys_category.uid',
+					'tt_address_group.uid',
 					'
 						tt_address
-						LEFT JOIN sys_category_record_mm on tt_address.uid = sys_category_record_mm.uid_local
-						LEFT JOIN sys_category on sys_category_record_mm.uid_foreign = sys_category.uid
+						LEFT JOIN tt_address_group_mm on tt_address.uid = tt_address_group_mm.uid_local
+						LEFT JOIN tt_address_group on tt_address_group_mm.uid_foreign = tt_address_group.uid
 					',
-					'1' . $this->cObj->enableFields('sys_category'),
-					'sys_category.uid',
+					'1' . $this->cObj->enableFields('tt_address_group'),
+					'tt_address_group.uid',
 					'',
 					100000
 			);
@@ -471,7 +471,7 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		$arr = array();
 		$table = 'tt_address';
 		if ($field == 'addressgroup') { // rewrite table and field for grouptitle
-			$table = 'sys_category';
+			$table = 'tt_address_group';
 			$field = 'title';
 		}
 		$pids = $tree->getTreeList($cObj->data['pages'], $cObj->data['recursive'], 0, 1);
@@ -480,8 +480,8 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		$select = $table . '.' . $field;
 		$from = '
 			tt_address
-			LEFT JOIN sys_category_record_mm on tt_address.uid = sys_category_record_mm.uid_local
-			LEFT JOIN sys_category on sys_category_record_mm.uid_foreign = sys_category.uid
+			LEFT JOIN tt_address_group_mm on tt_address.uid = tt_address_group_mm.uid_local
+			LEFT JOIN tt_address_group on tt_address_group_mm.uid_foreign = tt_address_group.uid
 		';
 		$where = '1';
 		$where .= (!empty($pids) ? ' AND ' . $table . '.pid IN (' . $pids . ')' : '');
@@ -526,17 +526,17 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		$arr = array();
 
 		// let's go
-		$select = 'sys_category.uid, sys_category.title, sys_category.pid';
-		$from = 'sys_category';
+		$select = 'tt_address_group.uid, tt_address_group.title, tt_address_group.pid';
+		$from = 'tt_address_group';
 		$wherePrefix = '1';
-		$wherePrefix .= ' AND sys_category.uid IN (' . $this->intList($this->cat) . ')';
+		$wherePrefix .= ' AND tt_address_group.uid IN (' . $this->intList($this->cat) . ')';
 		if (!empty($notAllowedCategories)) {
-			$wherePrefix .= ' AND sys_category.uid NOT IN (' . $this->intList($notAllowedCategories) . ')';
+			$wherePrefix .= ' AND tt_address_group.uid NOT IN (' . $this->intList($notAllowedCategories) . ')';
 		}
-		$wherePrefix .= $this->cObj->enableFields('sys_category');
-		$where = $wherePrefix . ' AND sys_category.parent = 0';
-		$groupby = 'sys_category.uid';
-		$orderby = 'sys_category.title';
+		$wherePrefix .= $this->cObj->enableFields('tt_address_group');
+		$where = $wherePrefix . ' AND tt_address_group.parent_group = 0';
+		$groupby = 'tt_address_group.uid';
+		$orderby = 'tt_address_group.title';
 		$limit = 100000;
 
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupby, $orderby, $limit);
@@ -550,7 +550,7 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 				//'_children' => ''
 			);
 
-			$where = $wherePrefix . ' AND sys_category.parent = ' . $row['uid'];
+			$where = $wherePrefix . ' AND tt_address_group.parent_group = ' . $row['uid'];
 			$res2 = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupby, $orderby, $limit);
 			while ($row2 = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res2)) {
 				$arr[$row['uid']]['_children'][$row2['uid']] = array(
@@ -558,7 +558,7 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 					//'_children' => ''
 				);
 
-				$where = $wherePrefix . ' AND sys_category.parent = ' . $row2['uid'];
+				$where = $wherePrefix . ' AND tt_address_group.parent_group = ' . $row2['uid'];
 				$res3 = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupby, $orderby, $limit);
 				while ($row3 = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res3)) {
 					$arr[$row['uid']]['_children'][$row2['uid']]['_children'][$row3['uid']] = array(
@@ -566,7 +566,7 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 						//'_children' => ''
 					);
 
-					$where = $wherePrefix . ' AND sys_category.parent = ' . $row3['uid'];
+					$where = $wherePrefix . ' AND tt_address_group.parent_group = ' . $row3['uid'];
 					$res4 = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select, $from, $where, $groupby, $orderby, $limit);
 					while ($row4 = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res4)) {
 						$arr[$row['uid']]['_children'][$row2['uid']]['_children'][$row3['uid']]['_children'][$row4['uid']] = array(
@@ -634,11 +634,11 @@ class wtdirectory_div extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
 		if (intval($uid) === 0) {
 			return false;
 		}
-		$select = 'sys_category.parent';
-		$from = 'sys_category';
+		$select = 'tt_address_group.parent_group';
+		$from = 'tt_address_group';
 		$where = '1';
 		$where .= ' AND uid = ' . intval($uid);
-		$where .= $pObj->cObj->enableFields('sys_category');
+		$where .= $pObj->cObj->enableFields('tt_address_group');
 		$groupby = '';
 		$orderby = '';
 		$limit = 1;
