@@ -155,7 +155,26 @@ class tx_wtdirectory_pi1_list extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin 
 						$this->InnerMarkerArray['###WTDIRECTORY_ALTERNATE###'] = 'even';
 					}
 
-					$this->content_item .= $this->cObj->substituteMarkerArrayCached($this->tmpl['list']['item'], $this->InnerMarkerArray, array(), $this->wrappedSubpartArray);
+                    /* mru: 04.07.2012: add handling for projektspecific fractions and comittee group! */
+                    $fracUid = $row["tx_ttaddressfields_fraction"];
+                    $gremUid = $row["tx_ttaddressfields_comittee"];
+                    if($fracUid > 0){
+                        $enableFracFields = $this->cObj->enableFields("tt_address_group");
+                        $resFrac = $GLOBALS["TYPO3_DB"]->exec_SELECTquery('title, uid',"tt_address_group","uid=".$fracUid." ".$enableFracFields,$groupBy='',$orderBy='',$limit='1');
+                        $fracRow = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($resFrac);
+                        $this->InnerMarkerArray["###WTDIRECTORY_FRACTIONLABEL###"] = "<br />Fraktion: ".$fracRow["title"];
+                        $this->InnerMarkerArray["###WTDIRECTORY_FRACTION###"] = $fracRow["title"];
+
+                    }
+                    if($gremUid > 0){
+                        $enableGremFields = $this->cObj->enableFields("tt_address_group");
+                        $resGrem = $GLOBALS["TYPO3_DB"]->exec_SELECTquery('title, uid',"tt_address_group","uid=".$gremUid." ".$enableGremFields,$groupBy='',$orderBy='',$limit='1');
+                        $gremRow = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($resGrem);
+                        $this->InnerMarkerArray["###WTDIRECTORY_COMITTEELABEL###"] = "<br />Gremium: ".$gremRow["title"];
+                        $this->InnerMarkerArray["###WTDIRECTORY_COMITTEE###"] = $gremRow["title"];
+                    }
+
+                    $this->content_item .= $this->cObj->substituteMarkerArrayCached($this->tmpl['list']['item'], $this->InnerMarkerArray, array(), $this->wrappedSubpartArray);
 					$result = 1; // min 1 result
 					$i++; // increase counter
 				}

@@ -72,6 +72,24 @@ class tx_wtdirectory_pi1_detail extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugi
 
 					// Markers
 					$this->markerArray = $this->markers->makeMarkers('detail', $this->conf, $row, GeneralUtility::trimExplode(',', $this->pi_getFFvalue($this->conf, 'field', 'detail'), 1), $this->piVars); // get markerArray
+                    /* mru: 04.07.2012: add handling for projektspecific fractions and comittee group! */
+                    $fracUid = $row["tx_ttaddressfields_fraction"];
+                    $gremUid = $row["tx_ttaddressfields_comittee"];
+                    if($fracUid > 0){
+                        $enableFracFields = $this->cObj->enableFields("tt_address_group");
+                        $resFrac = $GLOBALS["TYPO3_DB"]->exec_SELECTquery('title, uid',"tt_address_group","uid=".$fracUid." ".$enableFracFields,$groupBy='',$orderBy='',$limit='1');
+                        $fracRow = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($resFrac);
+                        $this->markerArray["###WTDIRECTORY_FRACTIONLABEL###"] = "<p><strong>Fraktion:</strong> ".$fracRow["title"]."</p>";
+                        $this->markerArray["###WTDIRECTORY_FRACTION###"] = $fracRow["title"];
+
+                    }
+                    if($gremUid > 0){
+                        $enableGremFields = $this->cObj->enableFields("tt_address_group");
+                        $resGrem = $GLOBALS["TYPO3_DB"]->exec_SELECTquery('title, uid',"tt_address_group","uid=".$gremUid." ".$enableGremFields,$groupBy='',$orderBy='',$limit='1');
+                        $gremRow = $GLOBALS["TYPO3_DB"]->sql_fetch_assoc($resGrem);
+                        $this->markerArray["###WTDIRECTORY_COMITTEELABEL###"] = "<p><strong>Gremium: </strong>".$gremRow["title"]."</p>";
+                        $this->markerArray["###WTDIRECTORY_COMITTEE###"] = $gremRow["title"];
+                    }
 					$this->markerArray['###WTDIRECTORY_VCARD_ICON###'] = $this->conf['label.']['vCard']; // Image for vcard icon
 					$this->markerArray['###WTDIRECTORY_POWERMAIL_ICON###'] = $this->conf['label.']['powermail']; // Image for powermail icon
 					$this->wrappedSubpartArray['###WTDIRECTORY_VCARD_LINK###'] = $this->cObj->typolinkWrap(array('parameter' => $GLOBALS['TSFE']->id, 'additionalParams' => '&type=' . $this->vCardType . '&' . $this->prefixId . '[vCard]=' . $row['uid'], 'useCacheHash' => 1)); // Link to same page with uid for vCard
